@@ -7,8 +7,10 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
-from models import db
-#from models import Person
+from models import db, Queue
+
+queue = Queue()
+all = queue.get_queue()
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,6 +38,28 @@ def handle_person():
     }
 
     return jsonify(response_body), 200
+
+@app.route('/new', methods=['POST'])
+def new_in_queue():
+    new = {
+        "name": request.json.get("name"),
+        "phone": request.json.get("phone")
+    }
+    queue.enqueue(new)
+    return jsonify(all), 200
+
+
+@app.route('/next', methods=['GET'])
+def next_in_line():
+    queue.dequeue()
+    return jsonify(all), 200
+
+
+@app.route('/all', methods=['GET'])
+def all_queue():
+    return jsonify(all), 200
+
+
 
 # this only runs if `$ python src/main.py` is exercuted
 if __name__ == '__main__':
